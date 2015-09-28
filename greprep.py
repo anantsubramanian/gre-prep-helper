@@ -340,6 +340,7 @@ def playWordGroups(numq):
         for option in options:
             print str(i) + ") " + option + "  ",
             i += 1
+        print str(i) + ") Exit",
         
         print "\n\nEnter your choices: ",
         choices = [ int(a) for a in raw_input().strip().split() if len(a) > 0 ]
@@ -347,6 +348,8 @@ def playWordGroups(numq):
         allcorrect = True
         if len(choices) == 0:
            allcorrect = False
+        elif len(choices) == 1 and choices[0] == len(options):
+            return
         else:
             for choice in choices:
                 if options[choice-1].lower() not in true:
