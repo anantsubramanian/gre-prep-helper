@@ -7,6 +7,7 @@ import random
 
 html_parser = HTMLParser.HTMLParser()
 meanings = {}
+data = {}
 
 def getWordDescAndMeaning(word):
     desc = ""
@@ -50,6 +51,7 @@ def getDescAndMeanings(wordlist):
 
 baseurl = "http://www.vocabulary.com/dictionary/"
 wordlist = []
+wordgroups = []
 
 if not os.path.isfile ( "worddata.dat" ):
     inpf = open('wordlist.txt')
@@ -65,6 +67,7 @@ if not os.path.isfile ( "worddata.dat" ):
         fm.write ( word + "$$$$" + meanings[word].encode('utf-8') + "\n" )
         word = word[0].upper() + word[1:]
         f.write( word + "$$$$" + desc.encode('utf-8') + "\n")
+        data [ word ] = desc
     f.close()
     fm.close()
 else:
@@ -73,6 +76,7 @@ else:
     for line in f:
         line = line.strip().split("$$$$")
         wordlist.append([line[0], line[1]])
+        data [ line[0] ] = line[1]
         fetchedwords[line[0].lower()] = True
     f.close()
     fm = open("wordmeanings.dat")
@@ -103,10 +107,18 @@ else:
             meanf.write( line + "$$$$" + meanings[line].encode('utf-8') + "\n" )
             line = line[0].upper() + line[1:]
             outf.write( line + "$$$$" + desc.encode('utf-8') + "\n" )
+            data [ line ] = desc
             print "Done with " + line + " (" + str(count) + "/" + str(len(tofetch)) + ")"
         inpf.close()
         outf.close()
         meanf.close()
+
+if os.path.isfile("wordgroups.dat"):
+    f = open("wordgroups.dat")
+    for line in f:
+        wordgroups.append(line.strip().split())
+    f.close()
+ 
 
 def playFlashCards ():
     random.shuffle(wordlist)
@@ -279,16 +291,122 @@ def deleteword ( todelete ):
     os.rename("wordmeanings.dat.out", "wordmeanings.dat")
 
 
+def playWordGroups(numq):
+    random.shuffle(wordgroups)
+    score = 0
+    count = 0
+    print ( "\nFor each question, choose the options which fall in the same word group as the blank / have the same meaning given." )
+    print ( "Press enter to continue" )
+    raw_input()
+    print ( "\n\n" )
+    curword = 0
+    for worddesclist in wordgroups:
+        if count == numq:
+            break
+        count += 1
+        print str ( count ) + ". ",
+        word = worddesclist [ random.randint(0, len(worddesclist)-1) ]
+        desc = data [ word ]
+        newdesc = re.sub(r'(' + word + r')', '______', desc)
+        newdesc = re.sub(r'(' + word.lower() + r')', '______', newdesc)
+        newdesc = newdesc[0].upper() + newdesc[1:]
+        print ( newdesc.decode('utf-8') + "\n\n" )
+
+        options = []
+        picked = {}
+        true = {}
+        i = 0
+        for w in worddesclist:
+            true [ w.lower() ] = True
+
+        while i < 2:
+            choice = worddesclist [ random.randint(0, len(worddesclist)-1) ]
+            if not choice.lower() in picked:
+                i += 1
+                picked [ choice.lower() ] = True
+                options.append(choice)
+        
+        i = 0
+        while i < 3:
+            choice = wordlist [ random.randint(0, len(wordlist)-1) ] [0]
+            if not choice.lower() in picked:
+                if not choice.lower() in true:
+                    i += 1
+                    picked [ choice.lower() ] = True
+                    options.append(choice)
+
+        i = 1
+        random.shuffle(options)
+        for option in options:
+            print str(i) + ") " + option + "  ",
+            i += 1
+        
+        print "\n\nEnter your choices: ",
+        choices = [ int(a) for a in raw_input().strip().split() if len(a) > 0 ]
+
+        allcorrect = True
+        if len(choices) == 0:
+           allcorrect = False
+        else:
+            for choice in choices:
+                if options[choice-1].lower() not in true:
+                    allcorrect = False
+                    break
+
+        if not allcorrect:
+            print "Incorrect!\n"
+            print "The correct choices were: ",
+            for c in options:
+                if c.lower() in true:
+                    print str(c) + " ",
+            print "\nPress any key to continue...\n"
+        else:
+            print "Correct!\n\n"
+        
+        curword += 1
+        
+
+
+def addGroup():
+    mfile = open ( "wordmeanings.dat", "a" )
+    dfile = open ( "worddata.dat", "a" )
+    gfile = open ( "wordgroups.dat", "a" )
+    print "\nEnter the words you want to add to this group separated by spaces:\n"
+    groupl = [ w.strip() for w in raw_input().strip().split() if len(w.strip()) > 0 ]
+    count = 0
+    groupstruct = []
+    for word in groupl:
+        if not word in meanings:
+            dandm = getWordDescAndMeaning ( word )
+            mfile.write ( word + "$$$$" + dandm[1].encode('utf-8') + "\n" )
+            word = word[0].upper() + word[1:]
+            dfile.write ( word + "$$$$" + dandm[0].encode('utf-8') + "\n" )
+            data [ word ] = dandm[0]
+            gfile.write( word + " " )
+        word = word[0].upper() + word[1:]
+        groupstruct.append(word)
+        count += 1
+        print "Done fetching " + word + " (" + str(count) + "/" + str(len(groupl)) + ")"
+
+    gfile.write("\n")
+    mfile.close()
+    gfile.close()
+    dfile.close()
+
+    wordgroups.append(groupstruct)
+
 while True:
     
     print ( "\n\n" + ("-" * 14) + " Choose Game Mode " + ("-" * 14) + "\n" )
     print ( "1. Flash cards" )
     print ( "2. Quiz mode" )
-    print ( "3. Display meaning" )
-    print ( "4. Display meaning and add word" )
-    print ( "5. List words" )
-    print ( "6. Delete word from list" )
-    print ( "7. Exit" )
+    print ( "3. Word groups" )
+    print ( "4. Display meaning" )
+    print ( "5. Display meaning and add word" )
+    print ( "6. List words" )
+    print ( "7. Delete word from list" )
+    print ( "8. Add word group" )
+    print ( "9. Exit" )
     print "\n\nYour choice: ",
     
     choice = raw_input().strip()
@@ -303,20 +421,30 @@ while True:
             numq = -1
         playQuiz(numq)
     elif choice == "3":
-        print "\nEnter your word: ",
-        displayMeaning( raw_input().strip().lower(), False )
+        print "\nEnter the number of questions (or press enter for all " + str(len(wordgroups)) + " questions): ",
+        numq = raw_input().strip()
+        if len ( numq ) > 0:
+            numq = int ( numq )
+        else:
+            numq = -1
+        playWordGroups(numq)
     elif choice == "4":
         print "\nEnter your word: ",
-        displayMeaning( raw_input().strip().lower(), True )
+        displayMeaning( raw_input().strip().lower(), False )
     elif choice == "5":
+        print "\nEnter your word: ",
+        displayMeaning( raw_input().strip().lower(), True )
+    elif choice == "6":
         count = 0
         for [word,tp] in wordlist:
             count += 1
             print str(count) + ". " + word
-    elif choice == "6":
+    elif choice == "7":
         print "\nEnter the word to be deleted: ",
         todelete = raw_input().strip()
         deleteword ( todelete )
+    elif choice == "8":
+        addGroup()
     else:
         exit()
 
