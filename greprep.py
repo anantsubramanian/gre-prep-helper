@@ -229,7 +229,9 @@ def playQuiz (numq):
 
 def displayMeaning ( word, shouldAdd ):
     if word in meanings:
-        print meanings[word].decode('utf-8') + "\n"
+        print "\nMeaning: " + meanings[word].decode('utf-8')
+        word = word[0].upper() + word[1:]
+        print "\nSentence: " + data [ word ] . encode ('utf-8')
         return
     
     descandmeaning = getWordDescAndMeaning ( word )
