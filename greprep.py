@@ -109,19 +109,45 @@ else:
 
 def playFlashCards ():
     random.shuffle(wordlist)
-    print ( "Pressing enter reveals the next word/description. Press enter to continue, type exit at any time to exit" )
+    print ( "\nPressing enter reveals the next word/description. Type mark to mark the word for review and exit to exit at any time." )
+    print ( "Press enter to continue.." )
     raw_input()
+    count = 0
+    marked = []
     for [word, desc] in wordlist:
-        print word + " : ",
-        if raw_input().strip().lower() == "exit":
-            return
+        count += 1
+        print str(count) + ". " + word + " : ",
+        inp = raw_input().strip().lower()
+        if inp == "exit":
+            break
+        elif inp == "mark":
+            marked.append(word)
         print ( meanings[word.lower()] + "\n" )
+
+
+    while len(marked) > 0:
+        newmark = []
+        print "\n" + str(len(marked)) + " words marked. Type exit at any time to exit."
+        print "Press any key to continue..."
+        raw_input()
+        count = 0
+        for word in marked:
+            count += 1
+            print str(count) + ". " + word + " : ",
+            inp = raw_input().strip().lower()
+            if inp == "exit":
+                return
+            elif inp == "mark":
+                newmark . append ( word )
+            print ( meanings[word.lower()] + "\n" )
+        marked = newmark
+
 
 def playQuiz (numq):
     random.shuffle(wordlist)
     score = 0
     count = 0
-    print ( "For each question, choose the word from the options that would best fit the blank / has the meaning given." )
+    print ( "\nFor each question, choose the word from the options that would best fit the blank / has the meaning given." )
     print ( "Press enter to continue" )
     raw_input()
     print ( "\n\n" )
