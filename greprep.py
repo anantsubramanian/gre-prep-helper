@@ -21,12 +21,16 @@ def getWordDescAndMeaning(word):
     meaningsstring = re.findall('class="definition".*?h3', pagestring)
     if len ( meaningsstring ) == 0:
         return ["",""]
-    meanings = re.findall('a>.*?/h3', meaningsstring[0])
-    for m in meanings:
-        if meaning == "":
-            meaning = m[2:-4].strip()
-        else:
-            meaning = meaning + ", " + m[2:-4].strip()
+    for mstring in meaningsstring:
+        meanings = re.findall('a>.*?/h3', mstring)
+        for m in meanings:
+            toadd = m[2:-4].strip()
+            toadd = toadd[0].upper() + toadd[1:]
+            toadd = html_parser.unescape ( toadd.decode('utf-8') )
+            if meaning == "":
+                meaning = toadd
+            else:
+                meaning = meaning + "; " + toadd
     return [desc,meaning]
 
 
@@ -51,7 +55,7 @@ if not os.path.isfile ( "worddata.dat" ):
     for line in inpf:
         line = line.strip().lower()
         wordlist.append(line)
-
+    
     f = open("worddata.dat", "w")
     fm = open("wordmeanings.dat", "w")
     print ( "Downloading word data from vocabulary.com..." )
@@ -75,24 +79,30 @@ else:
         line = line.strip().split("$$$$")
         meanings[line[0]] = line[1]
     fm.close()
-
+    
     print "Has the wordlist been modified since the last run? [yes/no] ",
     a = raw_input().strip().lower()
     if a == "yes":
         inpf = open("wordlist.txt")
         outf = open("worddata.dat", "a")
         meaf = open("wordmeanings.dat", "a")
+        tofetch = []
         for line in inpf:
             line = line.strip().lower()
             if not line in fetchedwords:
-                desc = getWordDescAndMeaning ( line )
-                meanings[line] = desc[1]
-                desc = desc[0]
-                wordlist.append([line, desc])
-                meanf.write( line + "$$$$" + meanings[line].encode('utf-8') + "\n" )
-                line = line[0].upper() + line[1:]
-                outf.write( line + "$$$$" + desc.encode('utf-8') + "\n" )
-                print ( line + ": " + desc.encode('utf-8') )
+                tofetch . append ( line )
+        
+        count = 0
+        for line in tofetch:
+            desc = getWordDescAndMeaning ( line )
+            count += 1
+            meanings[line] = desc[1]
+            desc = desc[0]
+            wordlist.append([line, desc])
+            meanf.write( line + "$$$$" + meanings[line].encode('utf-8') + "\n" )
+            line = line[0].upper() + line[1:]
+            outf.write( line + "$$$$" + desc.encode('utf-8') + "\n" )
+            print "Done with " + line + " (" + str(count) + "/" + str(len(tofetch)) + ")"
         inpf.close()
         outf.close()
         meanf.close()
@@ -105,7 +115,7 @@ def playFlashCards ():
         print word + " : ",
         if raw_input().strip().lower() == "exit":
             return
-        print ( (meanings[word.lower()][0].upper() + meanings[word.lower()][1:]) + "\n" )
+        print ( meanings[word.lower()] + "\n" )
 
 def playQuiz (numq):
     random.shuffle(wordlist)
@@ -138,7 +148,7 @@ def playQuiz (numq):
         
         ans = ""
         while ans == "" or int(ans) > 4:
-
+             
             i = 1
             for choice in options:
                 print str(i) + ") " + choice + "  ",
@@ -147,18 +157,18 @@ def playQuiz (numq):
                 print str(i) + ") Meaning of " + choice + "  ",
                 i += 1
             print "9)  Exit to menu"
-
+            
             print "\n\nYour choice: ",
             ans = raw_input().strip()
             if ans == "9":
                 print ( "You scored " + str ( score ) + " out of " + str(count) + "\n" )
                 return
-
+            
             if len(ans) > 0 and int(ans) > 4:
                 print options [ int(ans) - 5 ] + ": ",
-                print (meanings [ options [ int(ans) - 5 ] . lower() ][0].upper() + meanings [ options [ int(ans) - 5 ] . lower() ][1:]) + "\n"
+                print meanings [ options [ int(ans) - 5 ] . lower() ] + "\n"
                 continue
-
+            
             if len(ans) > 0 and options [ int(ans) - 1 ] == word:
                 print ( "Correct!" )
                 score += 1
@@ -169,9 +179,9 @@ def playQuiz (numq):
 
                 print ( "Press enter to continue..." )
                 raw_input ()
-
+            
             print ( "\n\n" )
-
+        
         count += 1
     
     print ( "You scored " + str ( score ) + " out of " + str(count) + "\n" )
@@ -179,16 +189,16 @@ def playQuiz (numq):
 
 def displayMeaning ( word, shouldAdd ):
     if word in meanings:
-        print (meanings[word][0].upper() + meanings[word][1:]).decode('utf-8') + "\n"
+        print meanings[word].decode('utf-8') + "\n"
         return
-
+    
     descandmeaning = getWordDescAndMeaning ( word )
     if len ( descandmeaning [0] ) == 0 :
         print "Word not found!\n"
     else:
-        print "\nMeaning: " + (descandmeaning [1][0].upper() + descandmeaning[1][1:]) . decode('utf-8')
+        print "\nMeaning: " + descandmeaning [1] . decode('utf-8')
         print "\nSentence:\n" + descandmeaning [0] . encode('utf-8')
-    
+        
         if shouldAdd :
             meanings [ word ] = descandmeaning [1]
             f = open ("wordmeanings.dat", "a")
@@ -203,7 +213,7 @@ def displayMeaning ( word, shouldAdd ):
             fword.close()
 
 while True:
-
+    
     print ( "\n\n" + ("-" * 14) + " Choose Game Mode " + ("-" * 14) + "\n" )
     print ( "1. Flash cards" )
     print ( "2. Quiz mode" )
@@ -211,7 +221,7 @@ while True:
     print ( "4. Display meaning and add word" )
     print ( "5. Exit" )
     print "\n\nYour choice: ",
-
+    
     choice = raw_input().strip()
     if choice == "1":
         playFlashCards()
