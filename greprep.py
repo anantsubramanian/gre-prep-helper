@@ -348,7 +348,7 @@ def playWordGroups(numq):
         allcorrect = True
         if len(choices) == 0:
            allcorrect = False
-        elif len(choices) == 1 and choices[0] == len(options):
+        elif len(choices) == 1 and choices[0] == len(options) + 1:
             return
         else:
             for choice in choices:
