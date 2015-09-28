@@ -2,6 +2,7 @@ import re
 import urllib
 import HTMLParser
 import os.path
+import os
 import random
 
 html_parser = HTMLParser.HTMLParser()
@@ -239,6 +240,45 @@ def displayMeaning ( word, shouldAdd ):
             fdesc.close()
             fword.close()
 
+def deleteword ( todelete ):
+    listfile = open ( "wordlist.txt" )
+    descfile = open ( "worddata.dat" )
+    meanfile = open ( "wordmeanings.dat" )
+    lofile = open ( "wordlist.txt.out", "w" )
+    dofile = open ( "worddata.dat.out", "w" )
+    mofile = open ( "wordmeanings.dat.out", "w" )
+    
+    for line in listfile:
+        if line.strip().lower() == todelete:
+            continue
+        lofile.write(line)
+    
+    for line in descfile:
+        if line.strip().split("$$$$")[0].lower() == todelete:
+            continue
+        dofile.write(line)
+
+    for line in meanfile:
+        if line.strip().split("$$$$")[0].lower() == todelete:
+            continue
+        mofile.write(line)
+
+    listfile.close()
+    descfile.close()
+    meanfile.close()
+    lofile.close()
+    dofile.close()
+    mofile.close()
+
+    os.remove("wordlist.txt")
+    os.remove("worddata.dat")
+    os.remove("wordmeanings.dat")
+
+    os.rename("wordlist.txt.out", "wordlist.txt")
+    os.rename("worddata.dat.out", "worddata.dat")
+    os.rename("wordmeanings.dat.out", "wordmeanings.dat")
+
+
 while True:
     
     print ( "\n\n" + ("-" * 14) + " Choose Game Mode " + ("-" * 14) + "\n" )
@@ -246,7 +286,9 @@ while True:
     print ( "2. Quiz mode" )
     print ( "3. Display meaning" )
     print ( "4. Display meaning and add word" )
-    print ( "5. Exit" )
+    print ( "5. List words" )
+    print ( "6. Delete word from list" )
+    print ( "7. Exit" )
     print "\n\nYour choice: ",
     
     choice = raw_input().strip()
@@ -266,6 +308,15 @@ while True:
     elif choice == "4":
         print "\nEnter your word: ",
         displayMeaning( raw_input().strip().lower(), True )
+    elif choice == "5":
+        count = 0
+        for [word,tp] in wordlist:
+            count += 1
+            print str(count) + ". " + word
+    elif choice == "6":
+        print "\nEnter the word to be deleted: ",
+        todelete = raw_input().strip()
+        deleteword ( todelete )
     else:
         exit()
 
