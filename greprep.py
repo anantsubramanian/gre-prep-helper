@@ -305,15 +305,16 @@ def playWordGroups(numq):
             break
         count += 1
         print str ( count ) + ". ",
-        word = worddesclist [ random.randint(0, len(worddesclist)-1) ]
+        word = worddesclist [ random.randint(0, len(worddesclist)-1) ] . strip()
         desc = data [ word ]
-        newdesc = re.sub(r'(' + word + r')', '______', desc)
-        newdesc = re.sub(r'(' + word.lower() + r')', '______', newdesc)
-        newdesc = newdesc[0].upper() + newdesc[1:]
-        print ( newdesc.decode('utf-8') + "\n\n" )
+        #newdesc = re.sub(r'(' + word + r')', '______', desc)
+        #newdesc = re.sub(r'(' + word.lower() + r')', '______', newdesc)
+        #newdesc = newdesc[0].upper() + newdesc[1:]
+        #print ( newdesc.decode('utf-8') + "\n\n" )
+        print ( word + "\n\n" )
 
         options = []
-        picked = {}
+        picked = { word.lower() : True }
         true = {}
         i = 0
         for w in worddesclist:
