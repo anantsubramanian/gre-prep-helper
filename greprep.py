@@ -131,6 +131,7 @@ def playFlashCards ():
         print "Press any key to continue..."
         raw_input()
         count = 0
+        random.shuffle(marked)
         for word in marked:
             count += 1
             print str(count) + ". " + word + " : ",
