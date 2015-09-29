@@ -75,7 +75,6 @@ else:
     f = open("worddata.dat")
     for line in f:
         line = line.strip().split("$$$$")
-        wordlist.append([line[0], line[1]])
         data [ line[0] ] = line[1]
         fetchedwords[line[0].lower()] = True
     f.close()
@@ -84,6 +83,11 @@ else:
         line = line.strip().split("$$$$")
         meanings[line[0]] = line[1]
     fm.close()
+    fl = open("wordlist.txt")
+    for line in fl:
+        line = line.strip()
+        wordlist.append([line, data[line[0].upper() + line[1:]]])
+    fl.close()
     
     print "Has the wordlist been modified since the last run? [yes/no] ",
     a = raw_input().strip().lower()
